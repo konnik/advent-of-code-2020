@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
+import Day1
 import Dict exposing (Dict)
 import Element exposing (Element, column, el, padding, row, spacing, text)
 import Element.Border as Border
@@ -16,7 +17,7 @@ import Url
 solutions : Dict Int Solution
 solutions =
     Dict.fromList
-        []
+        [ ( 1, Day1.solution ) ]
 
 
 type alias Model =
@@ -107,7 +108,7 @@ solveDay day input =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = "AoE 2019"
+    { title = "AoE 2020"
     , body = [ Element.layout [ padding 20 ] (mainView model) ]
     }
 
