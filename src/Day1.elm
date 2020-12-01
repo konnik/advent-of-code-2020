@@ -11,19 +11,49 @@ solution =
 
 part1 : Solver
 part1 input =
-    let
-        numbers =
-            input
-                |> String.words
-                |> List.map (String.toInt >> Maybe.withDefault 0)
-    in
-    numbers
+    parseInput input
         |> allPairs
-        |> List.filter (\( a, b ) -> a + b == 2020)
-        |> List.map (\( a, b ) -> a * b)
-        |> List.map String.fromInt
+        |> List.filter (withPairSum 2020)
+        |> List.map toPairProduct
         |> List.head
-        |> Maybe.withDefault "Kunde inte hittqa något svar."
+        |> answerToString
+
+
+part2 : Solver
+part2 input =
+    parseInput input
+        |> allTriplets
+        |> List.filter (withTripletSum 2020)
+        |> List.map toTripletProduct
+        |> List.head
+        |> answerToString
+
+
+answerToString : Maybe Int -> String
+answerToString maybeAnswer =
+    maybeAnswer
+        |> Maybe.map String.fromInt
+        |> Maybe.withDefault "Kunde inte hitta något svar."
+
+
+withPairSum : Int -> ( Int, Int ) -> Bool
+withPairSum sum ( a, b ) =
+    a + b == sum
+
+
+withTripletSum : Int -> ( Int, Int, Int ) -> Bool
+withTripletSum sum ( a, b, c ) =
+    sum == a + b + c
+
+
+toPairProduct : ( Int, Int ) -> Int
+toPairProduct ( a, b ) =
+    a * b
+
+
+toTripletProduct : ( Int, Int, Int ) -> Int
+toTripletProduct ( a, b, c ) =
+    a * b * c
 
 
 allPairs : List Int -> List ( Int, Int )
@@ -32,17 +62,30 @@ allPairs numbers =
         [] ->
             []
 
-        n :: [] ->
-            [ ( n, n ) ]
-
-        n :: rest ->
+        a :: rest ->
             let
-                pairsWithN =
-                    rest |> List.map (Tuple.pair n)
+                pairsWithA =
+                    rest |> List.map (Tuple.pair a)
             in
-            pairsWithN ++ allPairs rest
+            pairsWithA ++ allPairs rest
 
 
-part2 : Solver
-part2 input =
-    "not implemented"
+allTriplets : List Int -> List ( Int, Int, Int )
+allTriplets numbers =
+    case numbers of
+        [] ->
+            []
+
+        a :: rest ->
+            let
+                tripletsWithA =
+                    allPairs rest |> List.map (\( b, c ) -> ( a, b, c ))
+            in
+            tripletsWithA ++ allTriplets rest
+
+
+parseInput : String -> List Int
+parseInput input =
+    input
+        |> String.words
+        |> List.map (String.toInt >> Maybe.withDefault 0)
