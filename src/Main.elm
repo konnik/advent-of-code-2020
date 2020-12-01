@@ -11,6 +11,7 @@ import Element.Input as Input exposing (button, labelAbove, labelHidden, placeho
 import Html.Attributes exposing (value)
 import Http
 import Input
+import List
 import Types exposing (Solution)
 import Url
 
@@ -58,17 +59,29 @@ init _ url key =
 initFromUrl : Model -> Url.Url -> ( Model, Cmd Msg )
 initFromUrl model url =
     let
-        selectedDay =
+        lastDayWithSolution =
+            Dict.keys solutions
+                |> List.sort
+                |> List.reverse
+                |> List.head
+
+        selectedDayInUrl =
             url.fragment
                 |> Maybe.andThen String.toInt
+
+        initialDay : Maybe Int
+        initialDay =
+            [ selectedDayInUrl, lastDayWithSolution ]
+                |> List.filterMap identity
+                |> List.head
     in
     ( { model
         | input = ""
-        , day = selectedDay
+        , day = initialDay
         , answer1 = ""
         , answer2 = ""
       }
-    , selectedDay |> Maybe.map (\day -> Input.load day InputLoaded) |> Maybe.withDefault Cmd.none
+    , initialDay |> Maybe.map (\day -> Input.load day InputLoaded) |> Maybe.withDefault Cmd.none
     )
 
 
