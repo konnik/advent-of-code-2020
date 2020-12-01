@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "elm-live src/Main.elm -d ./static -- --output=static/app.js"
+    "dev": "elm-live src/Main.elm -d ./static -- --output=static/app.js",
+    "build": "elm make src/Main.elm --output=static/app.js"
   },
   "author": "",
   "license": "ISC",
