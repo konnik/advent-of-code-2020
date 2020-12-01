@@ -4,10 +4,11 @@ import Browser
 import Browser.Navigation as Nav
 import Day1
 import Dict exposing (Dict)
-import Element exposing (Element, column, el, padding, row, spacing, text)
+import Element exposing (Element, alignTop, column, el, fill, height, maximum, padding, rgb255, row, spacing, text, width)
 import Element.Border as Border
 import Element.Font as Font
-import Element.Input as Input
+import Element.Input as Input exposing (button, labelAbove, labelHidden, placeholder)
+import Html.Attributes exposing (value)
 import Http
 import Input
 import Types exposing (Solution)
@@ -26,14 +27,17 @@ type alias Model =
     , answer1 : String
     , answer2 : String
     , key : Nav.Key
+    , interactiveInput : Bool
     }
 
 
 type Msg
     = NoOp
     | InputLoaded Int (Result Http.Error String)
+    | InputChanged Int String
     | UrlChanged Url.Url
     | DaySelected Int
+    | SolveDay Int
 
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -45,6 +49,7 @@ init _ url key =
             , day = Nothing
             , answer1 = ""
             , answer2 = ""
+            , interactiveInput = False
             }
     in
     initFromUrl model url
@@ -73,6 +78,21 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        SolveDay day ->
+            let
+                ( a1, a2 ) =
+                    solveDay day model.input
+            in
+            ( { model
+                | answer1 = a1
+                , answer2 = a2
+              }
+            , Cmd.none
+            )
+
+        InputChanged day newInput ->
+            ( { model | input = newInput }, Cmd.none )
+
         DaySelected day ->
             ( model, Nav.pushUrl model.key ("#" ++ String.fromInt day) )
 
@@ -93,7 +113,12 @@ update msg model =
             )
 
         InputLoaded day (Err _) ->
-            ( { model | input = "Could not load input for day " ++ String.fromInt day }, Cmd.none )
+            ( { model
+                | input = ""
+                , interactiveInput = True
+              }
+            , Cmd.none
+            )
 
 
 solveDay : Int -> String -> ( String, String )
@@ -109,13 +134,19 @@ solveDay day input =
 view : Model -> Browser.Document Msg
 view model =
     { title = "AoE 2020"
-    , body = [ Element.layout [ padding 20 ] (mainView model) ]
+    , body =
+        [ Element.layout
+            [ padding 20
+            , width fill
+            ]
+            (mainView model)
+        ]
     }
 
 
 mainView : Model -> Element Msg
 mainView model =
-    column [ spacing 20, Font.family [ Font.monospace ] ]
+    column [ width fill, spacing 20, Font.family [ Font.monospace ] ]
         [ header
         , navigation
         , case model.day of
@@ -123,16 +154,55 @@ mainView model =
                 text "Ingen dag vald..."
 
             Just day ->
-                column [ spacing 20, Font.family [ Font.monospace ] ]
+                column
+                    [ width fill
+                    , spacing 20
+                    , Font.family [ Font.monospace ]
+                    ]
                     [ text <| "Solution for day " ++ String.fromInt day
                     , text <| "Part 1: "
                     , text <| model.answer1
                     , text <| "Part 2: "
                     , text <| model.answer2
                     , text "Input: "
-                    , text model.input
+                    , if model.interactiveInput then
+                        interactiveInputView day model.input
+
+                      else
+                        text model.input
                     ]
         ]
+
+
+interactiveInputView : Int -> String -> Element Msg
+interactiveInputView day value =
+    row [ width fill, spacing 30 ]
+        [ Input.multiline
+            [ width (fill |> maximum 700)
+            , height (fill |> maximum 400)
+            ]
+            { onChange = InputChanged day
+            , label = labelHidden <| "Ange input för dag " ++ String.fromInt day ++ " här..."
+            , placeholder = Just (placeholder [] (text <| "Ange input för dag " ++ String.fromInt day ++ " här..."))
+            , text = value
+            , spellcheck = False
+            }
+        , solveButton day
+        ]
+
+
+solveButton : Int -> Element Msg
+solveButton day =
+    button
+        [ Border.color (rgb255 0 0 0)
+        , Border.width 1
+        , Border.rounded 5
+        , padding 15
+        , alignTop
+        ]
+        { onPress = Just (SolveDay day)
+        , label = text ("Solve day " ++ String.fromInt day)
+        }
 
 
 header : Element Msg
