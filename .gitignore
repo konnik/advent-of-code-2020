@@ -1,0 +1,4 @@
+elm-stuff
+node_modules
+static/app.js
+static/input/*.txt
