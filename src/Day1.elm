@@ -33,7 +33,7 @@ answerToString : Maybe Int -> String
 answerToString maybeAnswer =
     maybeAnswer
         |> Maybe.map String.fromInt
-        |> Maybe.withDefault "Kunde inte hitta något svar."
+        |> Maybe.withDefault "Could not find a solution."
 
 
 withPairSum : Int -> ( Int, Int ) -> Bool

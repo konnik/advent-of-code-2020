@@ -164,7 +164,7 @@ mainView model =
         , navigation
         , case model.day of
             Nothing ->
-                text "Ingen dag vald..."
+                text "Please select a day above..."
 
             Just day ->
                 column
@@ -189,14 +189,18 @@ mainView model =
 
 interactiveInputView : Int -> String -> Element Msg
 interactiveInputView day value =
+    let
+        labelText =
+            "Enter your input for day " ++ String.fromInt day ++ " here..."
+    in
     row [ width fill, spacing 30 ]
         [ Input.multiline
             [ width (fill |> maximum 700)
             , height (fill |> maximum 400)
             ]
             { onChange = InputChanged day
-            , label = labelHidden <| "Ange input för dag " ++ String.fromInt day ++ " här..."
-            , placeholder = Just (placeholder [] (text <| "Ange input för dag " ++ String.fromInt day ++ " här..."))
+            , label = labelHidden <| labelText
+            , placeholder = Just (placeholder [] (text <| labelText))
             , text = value
             , spellcheck = False
             }
