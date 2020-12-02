@@ -46,11 +46,14 @@ validPassword1 (Password min max char password) =
 validPassword2 : Password -> Bool
 validPassword2 (Password a b char password) =
     let
+        charAt x =
+            List.drop (x - 1) >> List.head >> Maybe.withDefault '.'
+
         charA =
-            password |> List.drop (a - 1) |> List.head |> Maybe.withDefault '.'
+            password |> charAt a
 
         charB =
-            password |> List.drop (b - 1) |> List.head |> Maybe.withDefault '.'
+            password |> charAt b
     in
     (charA == char && charB /= char) || (charA /= char && charB == char)
 
