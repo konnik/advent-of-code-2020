@@ -8,35 +8,32 @@ solution =
     ( part1, part2 )
 
 
-
-{-
-   1-3 a: abcde
-   1-3 b: cdefg
-   2-9 c: ccccccccc
--}
-
-
 part1 : Solver
 part1 input =
     input
         |> String.lines
         |> List.map parseLine
-        |> List.filter validPassword
+        |> List.filter validPassword1
         |> List.length
         |> String.fromInt
 
 
 part2 : Solver
 part2 input =
-    "not implemented"
+    input
+        |> String.lines
+        |> List.map parseLine
+        |> List.filter validPassword2
+        |> List.length
+        |> String.fromInt
 
 
 type Password
     = Password Int Int Char (List Char)
 
 
-validPassword : Password -> Bool
-validPassword (Password min max char password) =
+validPassword1 : Password -> Bool
+validPassword1 (Password min max char password) =
     let
         count =
             password
@@ -44,6 +41,18 @@ validPassword (Password min max char password) =
                 |> List.length
     in
     count >= min && count <= max
+
+
+validPassword2 : Password -> Bool
+validPassword2 (Password a b char password) =
+    let
+        charA =
+            password |> List.drop (a - 1) |> List.head |> Maybe.withDefault '.'
+
+        charB =
+            password |> List.drop (b - 1) |> List.head |> Maybe.withDefault '.'
+    in
+    (charA == char && charB /= char) || (charA /= char && charB == char)
 
 
 parseLine : String -> Password
