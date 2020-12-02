@@ -1,0 +1,66 @@
+module Day2 exposing (solution)
+
+import Types exposing (Solution, Solver)
+
+
+solution : Solution
+solution =
+    ( part1, part2 )
+
+
+
+{-
+   1-3 a: abcde
+   1-3 b: cdefg
+   2-9 c: ccccccccc
+-}
+
+
+part1 : Solver
+part1 input =
+    input
+        |> String.lines
+        |> List.map parseLine
+        |> List.filter validPassword
+        |> List.length
+        |> String.fromInt
+
+
+part2 : Solver
+part2 input =
+    "not implemented"
+
+
+type Password
+    = Password Int Int Char (List Char)
+
+
+validPassword : Password -> Bool
+validPassword (Password min max char password) =
+    let
+        count =
+            password
+                |> List.filter ((==) char)
+                |> List.length
+    in
+    count >= min && count <= max
+
+
+parseLine : String -> Password
+parseLine line =
+    let
+        normalizedLine =
+            line
+                |> String.replace "-" " "
+                |> String.replace ":" ""
+    in
+    case String.split " " normalizedLine of
+        [ a, b, c, d ] ->
+            Password
+                (String.toInt a |> Maybe.withDefault -1)
+                (String.toInt b |> Maybe.withDefault -1)
+                (String.uncons c |> Maybe.map Tuple.first |> Maybe.withDefault '.')
+                (String.toList d)
+
+        _ ->
+            Password -1 -1 '.' []
