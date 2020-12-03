@@ -4,6 +4,7 @@ import Browser
 import Browser.Navigation as Nav
 import Day1
 import Day2
+import Day3
 import Dict exposing (Dict)
 import Element exposing (Element, alignTop, column, el, fill, height, maximum, padding, rgb255, row, spacing, text, width)
 import Element.Border as Border
@@ -22,6 +23,7 @@ solutions =
     Dict.fromList
         [ ( 1, Day1.solution )
         , ( 2, Day2.solution )
+        , ( 3, Day3.solution )
         ]
 
 
