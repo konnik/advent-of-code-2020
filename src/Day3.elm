@@ -1,6 +1,7 @@
 module Day3 exposing (solution)
 
 import Dict exposing (Dict)
+import String
 import Types exposing (Solution, Solver)
 
 
@@ -11,48 +12,82 @@ solution =
 
 part1 : Solver
 part1 input =
-    input
-        |> parseInput
-        |> countTrees
+    let
+        grid =
+            parseInput input
+    in
+    Slope 3 1
+        |> countTrees grid
         |> String.fromInt
 
 
 part2 : Solver
 part2 input =
-    "not implemented"
-
-
-countTrees : Grid -> Int
-countTrees grid =
     let
-        cellValue : Cell -> Int
-        cellValue cell =
-            if cell == Tree then
-                1
-
-            else
-                0
-
-        count : Dict Int Cell -> ( Int, Int ) -> ( Int, Int )
-        count rad ( pos, acc ) =
-            ( pos + 3, acc + (Dict.get (pos |> modBy (Dict.size rad)) rad |> Maybe.withDefault Tree |> cellValue) )
+        grid =
+            parseInput input
     in
-    grid
-        |> List.foldl count ( 0, 0 )
-        |> Tuple.second
+    [ Slope 1 1
+    , Slope 3 1
+    , Slope 5 1
+    , Slope 7 1
+    , Slope 1 2
+    ]
+        |> List.map (countTrees grid)
+        |> List.foldl (*) 1
+        |> String.fromInt
 
 
+type Slope
+    = Slope Int Int
 
--- parsing
+
+type Pos
+    = Pos Int Int
+
+
+type Cell
+    = Open
+    | Tree
 
 
 type alias Grid =
     List (Dict Int Cell)
 
 
-type Cell
-    = Open
-    | Tree
+countTrees : Grid -> Slope -> Int
+countTrees grid (Slope stepRight stepDown) =
+    let
+        countRow : Dict Int Cell -> ( Pos, Int ) -> ( Pos, Int )
+        countRow gridRow ( Pos col row, acc ) =
+            let
+                cell =
+                    gridRow
+                        |> Dict.get (col |> modBy (Dict.size gridRow))
+                        |> Maybe.withDefault Open
+            in
+            if (row |> modBy stepDown) == 0 then
+                ( Pos (col + stepRight) (row + 1), acc + cellValue cell )
+
+            else
+                ( Pos col (row + 1), acc )
+    in
+    grid
+        |> List.foldl countRow ( Pos 0 0, 0 )
+        |> Tuple.second
+
+
+cellValue : Cell -> Int
+cellValue cell =
+    if cell == Tree then
+        1
+
+    else
+        0
+
+
+
+-- parsing of input
 
 
 parseInput : String -> Grid
