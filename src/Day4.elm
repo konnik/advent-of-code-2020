@@ -107,7 +107,7 @@ hcl : String -> Bool
 hcl x =
     case ( String.left 1 x, String.dropLeft 1 x ) of
         ( "#", value ) ->
-            String.length value == 6 && String.all Char.isHexDigit value && (String.toLower x == x)
+            hexDigits 6 value
 
         _ ->
             False
@@ -134,6 +134,10 @@ cid x =
     True
 
 
+
+-- some validation primitives
+
+
 allOf : List (String -> Bool) -> String -> Bool
 allOf predicates str =
     predicates |> List.map (\p -> p str) |> List.all identity
@@ -141,7 +145,17 @@ allOf predicates str =
 
 digits : Int -> String -> Bool
 digits n str =
-    String.length str == n && List.all Char.isDigit (String.toList str)
+    String.length str == n && String.all Char.isDigit str
+
+
+hexDigit : Char -> Bool
+hexDigit ch =
+    List.member ch (String.toList "0123456789abcdef")
+
+
+hexDigits : Int -> String -> Bool
+hexDigits n str =
+    String.length str == n && String.all hexDigit str
 
 
 atLeast : Int -> String -> Bool
