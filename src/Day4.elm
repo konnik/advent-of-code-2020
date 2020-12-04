@@ -2,7 +2,7 @@ module Day4 exposing (solution)
 
 import Dict exposing (Dict)
 import Html.Attributes exposing (required)
-import Set
+import Set exposing (Set)
 import Types exposing (Solution, Solver)
 
 
@@ -15,22 +15,27 @@ part1 : Solver
 part1 input =
     input
         |> parseInput
-        |> List.filter validPassport
+        |> List.filter validPassport1
         |> List.length
         |> String.fromInt
 
 
 part2 : Solver
 part2 input =
-    "not implemented"
+    input
+        |> parseInput
+        |> List.filter validPassport1
+        |> List.filter validPassport2
+        |> List.length
+        |> String.fromInt
 
 
 type alias Passport =
     Dict String String
 
 
-validPassport : Passport -> Bool
-validPassport pass =
+validPassport1 : Passport -> Bool
+validPassport1 pass =
     let
         required =
             Set.fromList [ "byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid" ]
@@ -39,6 +44,126 @@ validPassport pass =
             Set.fromList <| Dict.keys pass
     in
     Set.intersect fields required == required
+
+
+validPassport2 : Passport -> Bool
+validPassport2 pass =
+    let
+        required : List ( String, String -> Bool )
+        required =
+            [ ( "byr", byr ), ( "iyr", iyr ), ( "eyr", eyr ), ( "hgt", hgt ), ( "hcl", hcl ), ( "ecl", ecl ), ( "pid", pid ) ]
+
+        validate : ( String, String -> Bool ) -> Bool
+        validate ( field, predicate ) =
+            Dict.get field pass
+                |> Maybe.map predicate
+                |> Maybe.withDefault False
+    in
+    required
+        |> List.map validate
+        |> List.all identity
+
+
+{-| byr (Birth Year) - four digits; at least 1920 and at most 2002.
+-}
+byr : String -> Bool
+byr =
+    allOf [ digits 4, atLeast "1920", atMost "2002" ]
+
+
+{-| iyr (Issue Year) - four digits; at least 2010 and at most 2020.
+-}
+iyr : String -> Bool
+iyr =
+    allOf [ digits 4, atLeast "2010", atMost "2020" ]
+
+
+{-| eyr (Expiration Year) - four digits; at least 2020 and at most 2030.
+-}
+eyr : String -> Bool
+eyr =
+    allOf [ digits 4, atLeast "2020", atMost "2030" ]
+
+
+{-| hgt (Height) - a number followed by either cm or in:
+If cm, the number must be at least 150 and at most 193.
+If in, the number must be at least 59 and at most 76.
+-}
+hgt : String -> Bool
+hgt x =
+    let
+        unit =
+            x |> String.right 2
+
+        value =
+            x |> String.dropRight 2
+    in
+    case unit of
+        "cm" ->
+            value |> allOf [ digits 3, atLeast "150", atMost "193" ]
+
+        "in" ->
+            value |> allOf [ digits 2, atLeast "59", atMost "76" ]
+
+        _ ->
+            False
+
+
+{-| hcl (Hair Color) - a # followed by exactly six characters 0-9 or a-f.
+-}
+hcl : String -> Bool
+hcl x =
+    case ( String.left 1 x, String.dropLeft 1 x ) of
+        ( "#", value ) ->
+            String.length value == 6 && String.all Char.isHexDigit value && (String.toLower x == x)
+
+        _ ->
+            False
+
+
+{-| ecl (Eye Color) - exactly one of: amb blu brn gry grn hzl oth.
+-}
+ecl : String -> Bool
+ecl x =
+    Set.member x (Set.fromList [ "amb", "blu", "brn", "gry", "grn", "hzl", "oth" ])
+
+
+{-| pid (Passport ID) - a nine-digit number, including leading zeroes.
+-}
+pid : String -> Bool
+pid x =
+    x |> digits 9
+
+
+{-| cid (Country ID) - ignored, missing or not.
+-}
+cid : String -> Bool
+cid x =
+    True
+
+
+allOf : List (String -> Bool) -> String -> Bool
+allOf predicates str =
+    predicates |> List.map (\p -> p str) |> List.all identity
+
+
+digits : Int -> String -> Bool
+digits n str =
+    String.length str == n && List.all Char.isDigit (String.toList str)
+
+
+atLeast : String -> String -> Bool
+atLeast value str =
+    str >= value
+
+
+atMost : String -> String -> Bool
+atMost value str =
+    str <= value
+
+
+
+-- parse input
 
 
 parseInput : String -> List Passport
