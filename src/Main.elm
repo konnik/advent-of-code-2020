@@ -159,7 +159,7 @@ view model =
                 |> Maybe.map (\d -> "Day " ++ String.fromInt d ++ " - ")
                 |> Maybe.withDefault ""
     in
-    { title = dayStr ++ "Advent of Code 2020"
+    { title = dayStr ++ "Advent of Code 2020 in Elm"
     , body =
         [ Element.layout
             [ padding 20
