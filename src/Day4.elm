@@ -138,7 +138,7 @@ allOf predicates str =
 
 choice : List String -> String -> Bool
 choice choices str =
-    Set.member str (Set.fromList choices)
+    List.member str choices
 
 
 digits : Int -> String -> Bool
