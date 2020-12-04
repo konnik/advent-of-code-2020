@@ -117,7 +117,7 @@ hcl x =
 -}
 ecl : String -> Bool
 ecl x =
-    Set.member x (Set.fromList [ "amb", "blu", "brn", "gry", "grn", "hzl", "oth" ])
+    x |> choice [ "amb", "blu", "brn", "gry", "grn", "hzl", "oth" ]
 
 
 {-| pid (Passport ID) - a nine-digit number, including leading zeroes.
@@ -127,13 +127,6 @@ pid x =
     x |> digits 9
 
 
-{-| cid (Country ID) - ignored, missing or not.
--}
-cid : String -> Bool
-cid x =
-    True
-
-
 
 -- some validation primitives
 
@@ -141,6 +134,11 @@ cid x =
 allOf : List (String -> Bool) -> String -> Bool
 allOf predicates str =
     predicates |> List.map (\p -> p str) |> List.all identity
+
+
+choice : List String -> String -> Bool
+choice choices str =
+    Set.member str (Set.fromList choices)
 
 
 digits : Int -> String -> Bool
@@ -160,12 +158,18 @@ hexDigits n str =
 
 atLeast : Int -> String -> Bool
 atLeast value str =
-    String.toInt str |> Maybe.map (\x -> x >= value) |> Maybe.withDefault False
+    str
+        |> String.toInt
+        |> Maybe.map (\x -> x >= value)
+        |> Maybe.withDefault False
 
 
 atMost : Int -> String -> Bool
 atMost value str =
-    String.toInt str |> Maybe.map (\x -> x <= value) |> Maybe.withDefault False
+    str
+        |> String.toInt
+        |> Maybe.map (\x -> x <= value)
+        |> Maybe.withDefault False
 
 
 
