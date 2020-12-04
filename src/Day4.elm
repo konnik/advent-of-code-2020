@@ -24,7 +24,6 @@ part2 : Solver
 part2 input =
     input
         |> parseInput
-        |> List.filter validPassport1
         |> List.filter validPassport2
         |> List.length
         |> String.fromInt
