@@ -68,21 +68,21 @@ validPassport2 pass =
 -}
 byr : String -> Bool
 byr =
-    allOf [ digits 4, atLeast "1920", atMost "2002" ]
+    allOf [ digits 4, atLeast 1920, atMost 2002 ]
 
 
 {-| iyr (Issue Year) - four digits; at least 2010 and at most 2020.
 -}
 iyr : String -> Bool
 iyr =
-    allOf [ digits 4, atLeast "2010", atMost "2020" ]
+    allOf [ digits 4, atLeast 2010, atMost 2020 ]
 
 
 {-| eyr (Expiration Year) - four digits; at least 2020 and at most 2030.
 -}
 eyr : String -> Bool
 eyr =
-    allOf [ digits 4, atLeast "2020", atMost "2030" ]
+    allOf [ digits 4, atLeast 2020, atMost 2030 ]
 
 
 {-| hgt (Height) - a number followed by either cm or in:
@@ -91,19 +91,12 @@ If in, the number must be at least 59 and at most 76.
 -}
 hgt : String -> Bool
 hgt x =
-    let
-        unit =
-            x |> String.right 2
+    case ( String.dropRight 2 x, String.right 2 x ) of
+        ( value, "cm" ) ->
+            value |> allOf [ digits 3, atLeast 150, atMost 193 ]
 
-        value =
-            x |> String.dropRight 2
-    in
-    case unit of
-        "cm" ->
-            value |> allOf [ digits 3, atLeast "150", atMost "193" ]
-
-        "in" ->
-            value |> allOf [ digits 2, atLeast "59", atMost "76" ]
+        ( value, "in" ) ->
+            value |> allOf [ digits 2, atLeast 59, atMost 76 ]
 
         _ ->
             False
@@ -152,14 +145,14 @@ digits n str =
     String.length str == n && List.all Char.isDigit (String.toList str)
 
 
-atLeast : String -> String -> Bool
+atLeast : Int -> String -> Bool
 atLeast value str =
-    str >= value
+    String.toInt str |> Maybe.map (\x -> x >= value) |> Maybe.withDefault False
 
 
-atMost : String -> String -> Bool
+atMost : Int -> String -> Bool
 atMost value str =
-    str <= value
+    String.toInt str |> Maybe.map (\x -> x <= value) |> Maybe.withDefault False
 
 
 
