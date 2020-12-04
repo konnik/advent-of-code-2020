@@ -7,7 +7,7 @@ import Day2
 import Day3
 import Day4
 import Dict exposing (Dict)
-import Element exposing (Element, alignTop, column, el, fill, height, maximum, padding, rgb255, row, spacing, text, width)
+import Element exposing (Element, alignRight, alignTop, column, el, fill, height, maximum, padding, rgb255, row, spacing, text, width)
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input exposing (button, labelAbove, labelHidden, placeholder)
@@ -153,7 +153,13 @@ solveDay day input =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = "AoE 2020"
+    let
+        dayStr =
+            model.day
+                |> Maybe.map (\d -> "Day " ++ String.fromInt d ++ " - ")
+                |> Maybe.withDefault ""
+    in
+    { title = dayStr ++ "Advent of Code 2020"
     , body =
         [ Element.layout
             [ padding 20
@@ -231,7 +237,13 @@ solveButton day =
 
 header : Element Msg
 header =
-    el [ Font.size 30, Font.bold ] (text "Advent of Code in Elm - 2020")
+    column []
+        [ el [ Font.size 30, Font.bold ] (text "Advent of Code in Elm - 2020")
+        , Element.newTabLink [ alignRight, Font.size 10 ]
+            { url = "https://github.com/konnik/advent-of-code-2020"
+            , label = text "Source on GitHub"
+            }
+        ]
 
 
 navButton : Int -> Element Msg
