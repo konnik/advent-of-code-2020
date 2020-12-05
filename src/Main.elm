@@ -8,7 +8,7 @@ import Day3
 import Day4
 import Day5
 import Dict exposing (Dict)
-import Element exposing (Element, alignRight, alignTop, column, el, fill, height, maximum, padding, rgb255, row, spacing, text, width)
+import Element exposing (Element, alignRight, alignTop, column, el, fill, height, maximum, mouseOver, padding, rgb255, row, spacing, text, width)
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input exposing (button, labelAbove, labelHidden, placeholder)
@@ -241,10 +241,17 @@ header : Element Msg
 header =
     column []
         [ el [ Font.size 30, Font.bold ] (text "Advent of Code in Elm - 2020")
-        , Element.newTabLink [ alignRight, Font.size 10 ]
-            { url = "https://github.com/konnik/advent-of-code-2020"
-            , label = text "Source on GitHub"
-            }
+        , row [ alignRight, Font.size 10, spacing 10 ]
+            [ Element.newTabLink []
+                { url = "https://github.com/konnik/advent-of-code-2020"
+                , label = text "Source on GitHub"
+                }
+            , text "-"
+            , Element.newTabLink [ mouseOver [ Border.color <| rgb255 255 0 0 ] ]
+                { url = "https://elm-lang.org/"
+                , label = text "Powered by Elm"
+                }
+            ]
         ]
 
 
