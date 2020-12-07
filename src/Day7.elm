@@ -27,11 +27,30 @@ part1 input =
 
 part2 : Solver
 part2 input =
-    "not implemented"
+    let
+        rules =
+            parseInput input
+    in
+    countBagsIn rules "shiny gold"
+        |> String.fromInt
 
 
 type alias Color =
     String
+
+
+countBagsIn : Dict Color (List ( Int, Color )) -> String -> Int
+countBagsIn rules color =
+    let
+        children : List ( Int, Color )
+        children =
+            Dict.get color rules |> Maybe.withDefault []
+
+        count : Int
+        count =
+            children |> List.map (\( n, c ) -> n + n * countBagsIn rules c) |> List.sum
+    in
+    count
 
 
 canHoldShinyGold : Dict Color (List ( Int, Color )) -> String -> Bool
