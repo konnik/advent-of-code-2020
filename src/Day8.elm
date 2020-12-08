@@ -26,7 +26,7 @@ part2 input =
 
         mutatedPrograms : List Program
         mutatedPrograms =
-            instructionAddessesOf originalProgram
+            instructionAddessesWithNopOrJmp originalProgram
                 |> List.map (mutateInstructionAt originalProgram)
     in
     mutatedPrograms
@@ -81,9 +81,23 @@ valueOfAccumulator =
     .acc
 
 
-instructionAddessesOf : Program -> List Int
-instructionAddessesOf prg =
+instructionAddessesWithNopOrJmp : Program -> List Int
+instructionAddessesWithNopOrJmp prg =
+    let
+        isNopOrJmp : Int -> Bool
+        isNopOrJmp address =
+            case Array.get address prg of
+                Just (Nop _) ->
+                    True
+
+                Just (Jmp _) ->
+                    True
+
+                _ ->
+                    False
+    in
     List.range 0 (Array.length prg - 1)
+        |> List.filter isNopOrJmp
 
 
 or : (State -> Bool) -> (State -> Bool) -> State -> Bool
