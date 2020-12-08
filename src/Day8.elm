@@ -12,26 +12,29 @@ solution =
 
 part1 : Solver
 part1 input =
-    let
-        prg =
-            parseInput input
-
-        initialState =
-            { pc = 0, acc = 0, visited = Set.empty }
-
-        infinitLoopIdentified : State -> Bool
-        infinitLoopIdentified state =
-            Set.member state.pc state.visited
-    in
-    initialState
-        |> stepUntil prg infinitLoopIdentified
+    parseInput input
+        |> runProgram
         |> .acc
         |> String.fromInt
 
 
 part2 : Solver
 part2 input =
-    "not implemented"
+    let
+        originalProgram =
+            parseInput input
+
+        mutatedPrograms : List Program
+        mutatedPrograms =
+            List.range 0 (Array.length originalProgram - 1)
+                |> List.map (mutateInstructionAt originalProgram)
+    in
+    mutatedPrograms
+        |> List.map runProgram
+        |> List.filter .halted
+        |> List.head
+        |> Maybe.map (.acc >> String.fromInt)
+        |> Maybe.withDefault "no answer found"
 
 
 type alias Program =
@@ -42,13 +45,53 @@ type alias State =
     { pc : Int
     , acc : Int
     , visited : Set Int
+    , halted : Bool
     }
 
 
 type Op
-    = Nop
+    = Nop Int
     | Acc Int
     | Jmp Int
+
+
+initialState : State
+initialState =
+    { pc = 0, acc = 0, visited = Set.empty, halted = False }
+
+
+runProgram : Program -> State
+runProgram prg =
+    initialState
+        |> stepUntil prg (infinitLoopIdentified |> or programHalted)
+
+
+infinitLoopIdentified : State -> Bool
+infinitLoopIdentified state =
+    Set.member state.pc state.visited
+
+
+programHalted : State -> Bool
+programHalted state =
+    state.halted
+
+
+or : (State -> Bool) -> (State -> Bool) -> State -> Bool
+or a b state =
+    a state || b state
+
+
+mutateInstructionAt : Program -> Int -> Program
+mutateInstructionAt prg pos =
+    case Array.get pos prg of
+        Just (Nop n) ->
+            Array.set pos (Jmp n) prg
+
+        Just (Jmp n) ->
+            Array.set pos (Nop n) prg
+
+        _ ->
+            prg
 
 
 stepUntil : Program -> (State -> Bool) -> State -> State
@@ -61,16 +104,23 @@ stepUntil prg haltCondtition state =
 
 
 step : Program -> State -> State
-step prg ({ pc, acc, visited } as state) =
-    case Array.get pc prg of
-        Just (Acc n) ->
-            { state | pc = pc + 1, acc = acc + n, visited = Set.insert pc visited }
+step prg ({ pc, acc, visited, halted } as state) =
+    if halted then
+        state
 
-        Just (Jmp n) ->
-            { state | pc = pc + n, visited = Set.insert pc visited }
+    else if pc >= Array.length prg then
+        { state | halted = True }
 
-        _ ->
-            { state | pc = pc + 1, visited = Set.insert pc visited }
+    else
+        case Array.get pc prg of
+            Just (Acc n) ->
+                { state | pc = pc + 1, acc = acc + n, visited = Set.insert pc visited }
+
+            Just (Jmp n) ->
+                { state | pc = pc + n, visited = Set.insert pc visited }
+
+            _ ->
+                { state | pc = pc + 1, visited = Set.insert pc visited }
 
 
 parseInput : String -> Program
@@ -90,5 +140,8 @@ parseOp opStr =
         "jmp" :: param :: [] ->
             Jmp (String.toInt param |> Maybe.withDefault 0)
 
+        "nop" :: param :: [] ->
+            Nop (String.toInt param |> Maybe.withDefault 0)
+
         _ ->
-            Nop
+            Nop 0
