@@ -14,7 +14,7 @@ part1 : Solver
 part1 input =
     parseInput input
         |> runProgram
-        |> .acc
+        |> valueOfAccumulator
         |> String.fromInt
 
 
@@ -26,14 +26,14 @@ part2 input =
 
         mutatedPrograms : List Program
         mutatedPrograms =
-            List.range 0 (Array.length originalProgram - 1)
+            instructionAddessesOf originalProgram
                 |> List.map (mutateInstructionAt originalProgram)
     in
     mutatedPrograms
         |> List.map runProgram
-        |> List.filter .halted
+        |> List.filter programHalted
         |> List.head
-        |> Maybe.map (.acc >> String.fromInt)
+        |> Maybe.map (valueOfAccumulator >> String.fromInt)
         |> Maybe.withDefault "no answer found"
 
 
@@ -74,6 +74,16 @@ infinitLoopIdentified state =
 programHalted : State -> Bool
 programHalted state =
     state.halted
+
+
+valueOfAccumulator : State -> Int
+valueOfAccumulator =
+    .acc
+
+
+instructionAddessesOf : Program -> List Int
+instructionAddessesOf prg =
+    List.range 0 (Array.length prg - 1)
 
 
 or : (State -> Bool) -> (State -> Bool) -> State -> Bool
