@@ -251,6 +251,11 @@ header =
         [ el [ Font.size 30, Font.bold ] (text "Advent of Code in Elm - 2020")
         , row [ alignRight, Font.size 10, spacing 10 ]
             [ Element.newTabLink []
+                { url = "https://adventofcode.com/2020"
+                , label = text "Advent of Code"
+                }
+            , text "-"
+            , Element.newTabLink []
                 { url = "https://github.com/konnik/advent-of-code-2020"
                 , label = text "Source on GitHub"
                 }
