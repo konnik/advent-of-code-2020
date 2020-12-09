@@ -10,6 +10,7 @@ import Day5
 import Day6
 import Day7
 import Day8
+import Day9
 import Dict exposing (Dict)
 import Element exposing (Element, alignRight, alignTop, column, el, fill, height, maximum, mouseOver, padding, rgb255, row, spacing, text, width)
 import Element.Border as Border
@@ -34,6 +35,7 @@ solutions =
         , ( 6, Day6.solution )
         , ( 7, Day7.solution )
         , ( 8, Day8.solution )
+        , ( 9, Day9.solution )
         ]
 
 
