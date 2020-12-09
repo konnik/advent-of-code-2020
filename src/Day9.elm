@@ -25,42 +25,60 @@ part2 input =
         numbers =
             parseInput input
 
-        invalidNumber =
+        difference =
             numbers |> findFirstInvalid |> Maybe.withDefault -1
 
-        sums =
+        partialSums =
             numbers
-                |> partialSums
+                |> calcPartialSums
 
-        pairsOfSums : List ( Int, Int )
-        pairsOfSums =
-            sums |> List.map Tuple.first |> allPairs
+        startSum =
+            findPairWithDifference difference partialSums
 
-        partialSumsWithDifference =
-            pairsOfSums
-                |> List.filter (\( a, b ) -> b - a == invalidNumber)
-                |> List.head
+        values =
+            partialSums
+                |> List.filter (\( sum, num ) -> sum > startSum && sum <= startSum + difference)
+                |> List.map Tuple.second
     in
-    case partialSumsWithDifference of
-        Just ( a, b ) ->
-            let
-                valuesBeweenPartialSums =
-                    sums |> List.filter (\( sum, num ) -> sum > a && sum <= b) |> List.map Tuple.second
-
-                minValue =
-                    List.minimum valuesBeweenPartialSums |> Maybe.withDefault -1
-
-                maxValue =
-                    List.maximum valuesBeweenPartialSums |> Maybe.withDefault -1
-            in
-            minValue + maxValue |> String.fromInt
-
-        Nothing ->
-            "could not find answer"
+    values
+        |> sumMinAndMax
+        |> String.fromInt
 
 
-partialSums : List Int -> List ( Int, Int )
-partialSums numbers =
+sumMinAndMax : List Int -> Int
+sumMinAndMax values =
+    [ List.minimum values
+    , List.maximum values
+    ]
+        |> List.filterMap identity
+        |> List.sum
+
+
+findPairWithDifference : Int -> List ( Int, Int ) -> Int
+findPairWithDifference difference partialSums2 =
+    let
+        sums =
+            partialSums2 |> List.map Tuple.first |> Set.fromList
+    in
+    sums
+        |> Set.filter (\a -> Set.member (a + difference) sums)
+        |> Set.toList
+        |> List.head
+        |> Maybe.withDefault -1
+
+
+pairFromList : List Int -> Maybe ( Int, Int )
+pairFromList numbers =
+    case numbers of
+        [ a, b ] ->
+            Just ( a, b )
+
+        _ ->
+            Nothing
+
+
+calcPartialSums : List Int -> List ( Int, Int )
+calcPartialSums numbers =
     numbers
         |> LE.scanl (\num ( prevSum, prevNum ) -> ( prevSum + num, num )) ( 0, 0 )
 
