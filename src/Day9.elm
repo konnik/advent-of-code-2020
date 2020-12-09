@@ -63,7 +63,6 @@ partialSums : List Int -> List ( Int, Int )
 partialSums numbers =
     numbers
         |> LE.scanl (\num ( prevSum, prevNum ) -> ( prevSum + num, num )) ( 0, 0 )
-        |> List.reverse
 
 
 findFirstInvalid : List Int -> Maybe Int
