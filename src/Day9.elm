@@ -1,6 +1,6 @@
 module Day9 exposing (solution)
 
-import Set
+import Set exposing (Set)
 import Types exposing (Solution, Solver)
 
 
@@ -20,17 +20,71 @@ part1 input =
 
 part2 : Solver
 part2 input =
-    "not implemented"
+    let
+        numbers =
+            parseInput input
+
+        invalidNumber =
+            numbers |> findFirstInvalid |> Maybe.withDefault -1
+
+        sums =
+            numbers
+                |> partialSums
+
+        pairsOfSums : List ( Int, Int )
+        pairsOfSums =
+            sums |> List.map Tuple.first |> allPairs
+
+        partialSumsWithDifference =
+            pairsOfSums
+                |> List.filter (\( a, b ) -> b - a == invalidNumber)
+                |> List.head
+    in
+    case partialSumsWithDifference of
+        Just ( a, b ) ->
+            let
+                valuesBeweenPartialSums =
+                    sums |> List.filter (\( sum, num ) -> sum > a && sum <= b) |> List.map Tuple.second
+
+                minValue =
+                    List.minimum valuesBeweenPartialSums |> Maybe.withDefault -1
+
+                maxValue =
+                    List.maximum valuesBeweenPartialSums |> Maybe.withDefault -1
+            in
+            minValue + maxValue |> String.fromInt
+
+        Nothing ->
+            "could not find answer"
 
 
-preambleLength : Int
-preambleLength =
-    25
+
+-- (70,15),(95,25),(142,47),(182,40)
+
+
+partialSums : List Int -> List ( Int, Int )
+partialSums numbers =
+    numbers
+        |> List.foldl
+            (\num sums ->
+                case sums of
+                    [] ->
+                        [ ( num, num ) ]
+
+                    ( a, b ) :: rest ->
+                        ( num + a, num ) :: ( a, b ) :: rest
+            )
+            []
+        |> List.reverse
 
 
 findFirstInvalid : List Int -> Maybe Int
 findFirstInvalid numbers =
     let
+        preambleLength : Int
+        preambleLength =
+            25
+
         preamble =
             List.take preambleLength numbers
 
