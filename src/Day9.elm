@@ -59,10 +59,6 @@ part2 input =
             "could not find answer"
 
 
-
--- (70,15),(95,25),(142,47),(182,40)
-
-
 partialSums : List Int -> List ( Int, Int )
 partialSums numbers =
     numbers
