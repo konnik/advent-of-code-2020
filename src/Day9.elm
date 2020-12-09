@@ -1,5 +1,6 @@
 module Day9 exposing (solution)
 
+import List.Extra as LE
 import Set exposing (Set)
 import Types exposing (Solution, Solver)
 
@@ -65,16 +66,7 @@ part2 input =
 partialSums : List Int -> List ( Int, Int )
 partialSums numbers =
     numbers
-        |> List.foldl
-            (\num sums ->
-                case sums of
-                    [] ->
-                        [ ( num, num ) ]
-
-                    ( a, b ) :: rest ->
-                        ( num + a, num ) :: ( a, b ) :: rest
-            )
-            []
+        |> LE.scanl (\num ( prevSum, prevNum ) -> ( prevSum + num, num )) ( 0, 0 )
         |> List.reverse
 
 
