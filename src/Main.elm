@@ -3,6 +3,7 @@ module Main exposing (main)
 import Browser
 import Browser.Navigation as Nav
 import Day1
+import Day10
 import Day2
 import Day3
 import Day4
@@ -36,6 +37,7 @@ solutions =
         , ( 7, Day7.solution )
         , ( 8, Day8.solution )
         , ( 9, Day9.solution )
+        , ( 10, Day10.solution )
         ]
 
 
