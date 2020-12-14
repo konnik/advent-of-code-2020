@@ -1,8 +1,6 @@
 module Day14 exposing (solution)
 
 import Dict exposing (Dict)
-import Html exposing (address)
-import String exposing (startsWith)
 import Types exposing (Solution, Solver)
 
 
@@ -62,7 +60,7 @@ type alias State =
 
 
 type alias Memory =
-    Dict String Binary
+    Dict (List Int) Binary
 
 
 type Bit
@@ -94,7 +92,7 @@ memorySumAsString state =
 
 writeMem : Binary -> Binary -> State -> State
 writeMem adress value state =
-    { state | mem = Dict.insert (binaryToString adress) value state.mem }
+    { state | mem = Dict.insert (adress |> toInts) value state.mem }
 
 
 resolveFloatingAdresses : Bitmask -> List Binary
@@ -161,11 +159,10 @@ fromBits bits =
             0
 
 
-binaryToString : Binary -> String
-binaryToString binary =
+toInts : Binary -> List Int
+toInts binary =
     binary
-        |> List.map (bitAs '0' '1')
-        |> String.fromList
+        |> List.map (bitAs 0 1)
 
 
 bitAs : a -> a -> Bit -> a
