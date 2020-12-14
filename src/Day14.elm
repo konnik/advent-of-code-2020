@@ -156,7 +156,7 @@ fromBits bits =
     bits
         |> List.foldl
             (\bit acc ->
-                bitToInt bit + acc * 2
+                bitAs 0 1 bit + acc * 2
             )
             0
 
@@ -179,19 +179,9 @@ bitAs zero one =
                 one
 
 
-bitToInt : Bit -> Int
-bitToInt bit =
-    case bit of
-        Zero ->
-            0
-
-        One ->
-            1
-
-
-bitFromInt : Int -> Bit
-bitFromInt n =
-    if n == 0 then
+bitFrom : Int -> Int -> Bit
+bitFrom zeroValue n =
+    if n == zeroValue then
         Zero
 
     else
@@ -203,7 +193,7 @@ toBits value =
     let
         f : Int -> ( Int, Binary ) -> ( Int, Binary )
         f _ ( remainder, bits ) =
-            ( remainder // 2, bitFromInt (remainder |> modBy 2) :: bits )
+            ( remainder // 2, bitFrom 0 (remainder |> modBy 2) :: bits )
     in
     List.range 1 36
         |> List.foldl f ( value, [] )
@@ -234,7 +224,6 @@ parseLine line =
 
 parseBitmask : String -> Instr
 parseBitmask str =
-    --mask = 00110X11X0000110X0000001000111010X00
     String.dropLeft 7 str
         |> String.toList
         |> List.map
@@ -254,7 +243,6 @@ parseBitmask str =
 
 parseMem : String -> Instr
 parseMem str =
-    --mem[47790] = 1221939
     str
         |> String.dropLeft 4
         |> String.split "] = "
