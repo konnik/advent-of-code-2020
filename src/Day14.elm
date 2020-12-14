@@ -21,7 +21,12 @@ part1 input =
                     { state | bitmask = newBitmask }
 
                 Mem address value ->
-                    { state | mem = Dict.insert address (combineValue state.bitmask value) state.mem }
+                    let
+                        maskedValue =
+                            value |> combineWithBitmask state.bitmask
+                    in
+                    state
+                        |> writeMem address maskedValue
     in
     input
         |> parseInput
@@ -39,13 +44,10 @@ part2 input =
                     { state | bitmask = newBitmask }
 
                 Mem address value ->
-                    let
-                        newMem =
-                            combineAddress state.bitmask address
-                                |> resolveFloatingAdresses
-                                |> List.foldl (\resolvedAddress mem -> Dict.insert resolvedAddress value mem) state.mem
-                    in
-                    { state | mem = newMem }
+                    address
+                        |> toFloatingAddress state.bitmask
+                        |> resolveFloatingAdresses
+                        |> List.foldl (\resolvedAddress newState -> writeMem resolvedAddress value newState) state
     in
     input
         |> parseInput
@@ -89,6 +91,11 @@ memorySumAsString state =
         |> String.fromInt
 
 
+writeMem : Binary -> Binary -> State -> State
+writeMem adress value state =
+    { state | mem = Dict.insert adress value state.mem }
+
+
 resolveFloatingAdresses : Bitmask -> List Binary
 resolveFloatingAdresses bitmask =
     case bitmask of
@@ -109,8 +116,8 @@ resolveFloatingAdresses bitmask =
             [ [ -1 ] ]
 
 
-combineAddress : Bitmask -> Binary -> Bitmask
-combineAddress bitmask adress =
+toFloatingAddress : Bitmask -> Binary -> Bitmask
+toFloatingAddress bitmask adress =
     List.map2
         (\mask adressbit ->
             mask
@@ -127,8 +134,8 @@ combineAddress bitmask adress =
         adress
 
 
-combineValue : Bitmask -> Binary -> Binary
-combineValue bitmask value =
+combineWithBitmask : Bitmask -> Binary -> Binary
+combineWithBitmask bitmask value =
     List.map2
         (\mask bit ->
             mask |> Maybe.map identity |> Maybe.withDefault bit
