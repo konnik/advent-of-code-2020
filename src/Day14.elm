@@ -1,7 +1,8 @@
-module Day14 exposing (fromBits, solution, toBits)
+module Day14 exposing (solution)
 
 import Dict exposing (Dict)
 import Html exposing (address)
+import String exposing (startsWith)
 import Types exposing (Solution, Solver)
 
 
@@ -13,33 +14,117 @@ solution =
 part1 : Solver
 part1 input =
     let
-        instr =
-            parseInput input
+        execute : Instr -> State -> State
+        execute instr state =
+            case instr of
+                Mask newBitmask ->
+                    { state | bitmask = newBitmask }
 
-        a : State
-        a =
-            instr
-                |> List.foldl
-                    (\i state ->
-                        case i of
-                            Mask newBitmask ->
-                                { state | bitmask = newBitmask }
-
-                            Mem address value ->
-                                { state | mem = Dict.insert address (combineValue state.bitmask value) state.mem }
-                    )
-                    initalState
+                Mem address value ->
+                    { state | mem = Dict.insert address (combineValue state.bitmask value) state.mem }
     in
-    a.mem
+    input
+        |> parseInput
+        |> List.foldl execute initalState
+        |> memorySumAsString
+
+
+part2 : Solver
+part2 input =
+    let
+        execute : Instr -> State -> State
+        execute instr state =
+            case instr of
+                Mask newBitmask ->
+                    { state | bitmask = newBitmask }
+
+                Mem address value ->
+                    let
+                        newMem =
+                            combineAddress state.bitmask address
+                                |> resolveFloatingAdresses
+                                |> List.foldl (\resolvedAddress mem -> Dict.insert resolvedAddress value mem) state.mem
+                    in
+                    { state | mem = newMem }
+    in
+    input
+        |> parseInput
+        |> List.foldl execute initalState
+        |> memorySumAsString
+
+
+type alias State =
+    { mem : Memory
+    , bitmask : Bitmask
+    }
+
+
+type alias Memory =
+    Dict Binary Binary
+
+
+type alias Bit =
+    Int
+
+
+type alias Binary =
+    List Bit
+
+
+type alias Bitmask =
+    List (Maybe Bit)
+
+
+type Instr
+    = Mask Bitmask
+    | Mem Binary Binary
+
+
+memorySumAsString : State -> String
+memorySumAsString state =
+    state.mem
         |> Dict.values
         |> List.map fromBits
         |> List.sum
         |> String.fromInt
 
 
-part2 : Solver
-part2 input =
-    "not implemented"
+resolveFloatingAdresses : Bitmask -> List Binary
+resolveFloatingAdresses bitmask =
+    case bitmask of
+        [] ->
+            [ [] ]
+
+        (Just 0) :: rest ->
+            resolveFloatingAdresses rest |> List.map ((::) 0)
+
+        (Just 1) :: rest ->
+            List.map ((::) 1) (resolveFloatingAdresses rest)
+
+        Nothing :: rest ->
+            List.map ((::) 0) (resolveFloatingAdresses rest)
+                ++ List.map ((::) 1) (resolveFloatingAdresses rest)
+
+        (Just _) :: _ ->
+            [ [ -1 ] ]
+
+
+combineAddress : Bitmask -> Binary -> Bitmask
+combineAddress bitmask adress =
+    List.map2
+        (\mask adressbit ->
+            mask
+                |> Maybe.map
+                    (\maskbit ->
+                        if maskbit == 0 then
+                            adressbit
+
+                        else
+                            1
+                    )
+        )
+        bitmask
+        adress
 
 
 combineValue : Bitmask -> Binary -> Binary
@@ -56,12 +141,6 @@ initalState : State
 initalState =
     { mem = Dict.empty
     , bitmask = emptyBitmask
-    }
-
-
-type alias State =
-    { mem : Memory
-    , bitmask : Bitmask
     }
 
 
@@ -90,27 +169,6 @@ toBits value =
     List.range 1 36
         |> List.foldl f ( value, [] )
         |> Tuple.second
-
-
-type alias Memory =
-    Dict Binary Binary
-
-
-type alias Bit =
-    Int
-
-
-type alias Binary =
-    List Bit
-
-
-type alias Bitmask =
-    List (Maybe Bit)
-
-
-type Instr
-    = Mask Bitmask
-    | Mem Binary Binary
 
 
 
