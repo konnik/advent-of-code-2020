@@ -62,11 +62,12 @@ type alias State =
 
 
 type alias Memory =
-    Dict Binary Binary
+    Dict String Binary
 
 
-type alias Bit =
-    Int
+type Bit
+    = Zero
+    | One
 
 
 type alias Binary =
@@ -93,7 +94,7 @@ memorySumAsString state =
 
 writeMem : Binary -> Binary -> State -> State
 writeMem adress value state =
-    { state | mem = Dict.insert adress value state.mem }
+    { state | mem = Dict.insert (binaryToString adress) value state.mem }
 
 
 resolveFloatingAdresses : Bitmask -> List Binary
@@ -102,18 +103,12 @@ resolveFloatingAdresses bitmask =
         [] ->
             [ [] ]
 
-        (Just 0) :: rest ->
-            resolveFloatingAdresses rest |> List.map ((::) 0)
-
-        (Just 1) :: rest ->
-            List.map ((::) 1) (resolveFloatingAdresses rest)
+        (Just bit) :: rest ->
+            resolveFloatingAdresses rest |> List.map ((::) bit)
 
         Nothing :: rest ->
-            List.map ((::) 0) (resolveFloatingAdresses rest)
-                ++ List.map ((::) 1) (resolveFloatingAdresses rest)
-
-        (Just _) :: _ ->
-            [ [ -1 ] ]
+            List.map ((::) Zero) (resolveFloatingAdresses rest)
+                ++ List.map ((::) One) (resolveFloatingAdresses rest)
 
 
 toFloatingAddress : Bitmask -> Binary -> Bitmask
@@ -123,11 +118,11 @@ toFloatingAddress bitmask adress =
             mask
                 |> Maybe.map
                     (\maskbit ->
-                        if maskbit == 0 then
+                        if maskbit == Zero then
                             adressbit
 
                         else
-                            1
+                            One
                     )
         )
         bitmask
@@ -156,22 +151,59 @@ emptyBitmask =
     List.repeat 36 Nothing
 
 
-fromBits : List Int -> Int
+fromBits : Binary -> Int
 fromBits bits =
     bits
         |> List.foldl
             (\bit acc ->
-                bit + acc * 2
+                bitToInt bit + acc * 2
             )
             0
+
+
+binaryToString : Binary -> String
+binaryToString binary =
+    binary
+        |> List.map (bitAs '0' '1')
+        |> String.fromList
+
+
+bitAs : a -> a -> Bit -> a
+bitAs zero one =
+    \bit ->
+        case bit of
+            Zero ->
+                zero
+
+            One ->
+                one
+
+
+bitToInt : Bit -> Int
+bitToInt bit =
+    case bit of
+        Zero ->
+            0
+
+        One ->
+            1
+
+
+bitFromInt : Int -> Bit
+bitFromInt n =
+    if n == 0 then
+        Zero
+
+    else
+        One
 
 
 toBits : Int -> Binary
 toBits value =
     let
-        f : Int -> ( Int, List Int ) -> ( Int, List Int )
+        f : Int -> ( Int, Binary ) -> ( Int, Binary )
         f _ ( remainder, bits ) =
-            ( remainder // 2, (remainder |> modBy 2) :: bits )
+            ( remainder // 2, bitFromInt (remainder |> modBy 2) :: bits )
     in
     List.range 1 36
         |> List.foldl f ( value, [] )
@@ -209,10 +241,10 @@ parseBitmask str =
             (\ch ->
                 case ch of
                     '0' ->
-                        Just 0
+                        Just Zero
 
                     '1' ->
-                        Just 1
+                        Just One
 
                     _ ->
                         Nothing
