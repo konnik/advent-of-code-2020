@@ -119,24 +119,23 @@ canSeeOccupied ( x, y ) grid ( dx, dy ) =
 
 step : Int -> (Pos -> Grid -> Int) -> Grid -> Grid
 step tolerance countOccupiedFunc grid =
-    Dict.toList grid
-        |> List.foldl
-            (\( ( x, y ), cell ) newGrid ->
+    grid
+        |> Dict.map
+            (\( x, y ) cell ->
                 case ( cell, countOccupiedFunc ( x, y ) grid ) of
                     ( Empty, 0 ) ->
-                        Dict.insert ( x, y ) Occupied newGrid
+                        Occupied
 
                     ( Occupied, n ) ->
                         if n >= tolerance then
-                            Dict.insert ( x, y ) Empty newGrid
+                            Empty
 
                         else
-                            newGrid
+                            cell
 
                     _ ->
-                        newGrid
+                        cell
             )
-            grid
 
 
 
