@@ -61,15 +61,15 @@ resolveFields columns =
         [] ->
             []
 
-        ( col, [ resolvedField ] ) :: rest ->
-            ( col, resolvedField ) :: resolveFields (rest |> withoutField resolvedField)
+        ( col, [ resolvedField ] ) :: unresolved ->
+            ( col, resolvedField ) :: resolveFields (unresolved |> without resolvedField)
 
         _ ->
             [ ( -1, "Error" ) ]
 
 
-withoutField : String -> List ( Int, List String ) -> List ( Int, List String )
-withoutField fieldToRemove columns =
+without : String -> List ( Int, List String ) -> List ( Int, List String )
+without fieldToRemove columns =
     columns
         |> List.map
             (\( col, fields ) ->
