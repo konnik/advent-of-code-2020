@@ -121,26 +121,22 @@ step : Int -> (Pos -> Grid -> Int) -> Grid -> Grid
 step tolerance countOccupiedFunc grid =
     Dict.toList grid
         |> List.foldl
-            (\( ( x, y ), cell ) newCells ->
-                let
-                    newCell =
-                        case ( cell, countOccupiedFunc ( x, y ) grid ) of
-                            ( Empty, 0 ) ->
-                                Occupied
+            (\( ( x, y ), cell ) newGrid ->
+                case ( cell, countOccupiedFunc ( x, y ) grid ) of
+                    ( Empty, 0 ) ->
+                        Dict.insert ( x, y ) Occupied newGrid
 
-                            ( Occupied, n ) ->
-                                if n >= tolerance then
-                                    Empty
+                    ( Occupied, n ) ->
+                        if n >= tolerance then
+                            Dict.insert ( x, y ) Empty newGrid
 
-                                else
-                                    cell
+                        else
+                            newGrid
 
-                            _ ->
-                                cell
-                in
-                Dict.insert ( x, y ) newCell newCells
+                    _ ->
+                        newGrid
             )
-            Dict.empty
+            grid
 
 
 
