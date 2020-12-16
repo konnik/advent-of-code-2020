@@ -1,5 +1,10 @@
 module Day16 exposing (solution)
 
+import Dict exposing (Dict, values)
+import Korv exposing (rules, yourTicket)
+import List
+import List.Extra as LE
+import Set exposing (Set)
 import Types exposing (Solution, Solver)
 
 
@@ -11,11 +16,11 @@ solution =
 part1 : Solver
 part1 input =
     let
-        ( rules, myTicket, nearbyTickets ) =
+        ( rules, _, nearbyTickets ) =
             parseInput input
     in
     nearbyTickets
-        |> List.concatMap (\(Ticket values) -> values)
+        |> List.concat
         |> List.filter (not << validForAny rules)
         |> List.sum
         |> String.fromInt
@@ -23,17 +28,117 @@ part1 input =
 
 part2 : Solver
 part2 input =
-    "not implemented"
+    let
+        ( rules, yourTicket, nearbyTickets ) =
+            parseInput input
+
+        validTickets : List (List Int)
+        validTickets =
+            nearbyTickets
+                |> List.filter (validTicket rules)
+    in
+    validTickets
+        |> asColumns
+        |> List.map (possibleFields rules)
+        |> List.indexedMap Tuple.pair
+        |> List.sortBy numberOfPossibleFields
+        |> resolveFields
+        |> List.filter (fieldStartsWith "departure")
+        |> List.map (posToValueIn yourTicket)
+        |> List.product
+        |> String.fromInt
 
 
-validTicket : (Int -> Bool) -> Ticket -> Bool
-validTicket validationFunc (Ticket values) =
-    values |> List.all validationFunc
+type alias Rule =
+    ( String, ( Int, Int ), ( Int, Int ) )
 
 
-validForAll : List Rule -> Int -> Bool
-validForAll rules value =
-    rules |> List.all (isValidFor value)
+type alias Ticket =
+    List Int
+
+
+resolveFields : List ( Int, List String ) -> List ( Int, String )
+resolveFields columns =
+    case columns of
+        [] ->
+            []
+
+        ( col, [ resolvedField ] ) :: rest ->
+            ( col, resolvedField ) :: resolveFields (rest |> withoutField resolvedField)
+
+        _ ->
+            [ ( -1, "Error" ) ]
+
+
+withoutField : String -> List ( Int, List String ) -> List ( Int, List String )
+withoutField fieldToRemove columns =
+    columns
+        |> List.map
+            (\( col, fields ) ->
+                ( col, fields |> List.filter (\f -> f /= fieldToRemove) )
+            )
+        |> List.sortBy numberOfPossibleFields
+
+
+asColumns : List (List Int) -> List (List Int)
+asColumns =
+    LE.transpose
+
+
+numberOfPossibleFields : ( Int, List String ) -> Int
+numberOfPossibleFields =
+    Tuple.second >> List.length
+
+
+fieldStartsWith : String -> ( Int, String ) -> Bool
+fieldStartsWith str ( _, name ) =
+    name |> String.startsWith str
+
+
+posToValueIn : Ticket -> ( Int, a ) -> Int
+posToValueIn ticket ( col, _ ) =
+    ticket |> List.drop col |> List.head |> Maybe.withDefault -1
+
+
+possibleFields : List Rule -> List Int -> List String
+possibleFields rules column =
+    let
+        allFields : List String
+        allFields =
+            rules |> List.map fieldname
+    in
+    column
+        |> List.foldl
+            (\v remaining ->
+                remaining
+                    |> List.filter (\f -> List.member f (validFields rules v))
+            )
+            allFields
+
+
+validFields : List Rule -> Int -> List String
+validFields rules v =
+    rules
+        |> List.filter
+            (\( _, ( a, b ), ( c, d ) ) ->
+                (a <= v && v <= b) || (c <= v && v <= d)
+            )
+        |> List.map fieldname
+
+
+fieldname : ( String, a, a ) -> String
+fieldname ( n, _, _ ) =
+    n
+
+
+validTicket : List Rule -> List Int -> Bool
+validTicket rules ticket =
+    ticket
+        |> List.all
+            (\v ->
+                rules
+                    |> List.any (isValidFor v)
+            )
 
 
 validForAny : List Rule -> Int -> Bool
@@ -42,16 +147,8 @@ validForAny rules value =
 
 
 isValidFor : Int -> Rule -> Bool
-isValidFor value (Rule _ ( a, b ) ( c, d )) =
-    (value >= a && value <= b) || (value >= c && value <= d)
-
-
-type Rule
-    = Rule String ( Int, Int ) ( Int, Int )
-
-
-type Ticket
-    = Ticket (List Int)
+isValidFor v ( _, ( a, b ), ( c, d ) ) =
+    (a <= v && v <= b) || (c <= v && v <= d)
 
 
 
@@ -68,7 +165,7 @@ parseInput input =
             )
 
         _ ->
-            ( [], Ticket [], [] )
+            ( [], [], [] )
 
 
 parseRules : String -> List Rule
@@ -89,16 +186,18 @@ parseRule input =
     in
     case String.split "|" normalizedInput of
         [ name, a, b, c, d ] ->
-            Rule name
-                ( a |> (String.toInt >> Maybe.withDefault -1)
-                , b |> (String.toInt >> Maybe.withDefault -1)
-                )
-                ( c |> (String.toInt >> Maybe.withDefault -1)
-                , d |> (String.toInt >> Maybe.withDefault -1)
-                )
+            ( name
+            , ( parseInt a, parseInt b )
+            , ( parseInt c, parseInt d )
+            )
 
         _ ->
-            Rule "ERROR" ( -1, -1 ) ( -1, -1 )
+            ( "ERROR", ( -1, -1 ), ( -1, -1 ) )
+
+
+parseInt : String -> Int
+parseInt =
+    String.toInt >> Maybe.withDefault -1
 
 
 parseYourTicket : String -> Ticket
@@ -108,7 +207,7 @@ parseYourTicket input =
         |> List.drop 1
         |> List.map parseTicket
         |> List.head
-        |> Maybe.withDefault (Ticket [])
+        |> Maybe.withDefault []
 
 
 parseNearbyTickets : String -> List Ticket
@@ -124,4 +223,3 @@ parseTicket input =
     input
         |> String.split ","
         |> List.filterMap String.toInt
-        |> Ticket
