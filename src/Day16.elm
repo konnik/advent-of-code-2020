@@ -1,7 +1,6 @@
 module Day16 exposing (solution)
 
 import Dict exposing (Dict, values)
-import Korv exposing (rules, yourTicket)
 import List
 import List.Extra as LE
 import Set exposing (Set)
@@ -39,8 +38,7 @@ part2 input =
     in
     validTickets
         |> asColumns
-        |> List.map (possibleFields rules)
-        |> List.indexedMap Tuple.pair
+        |> List.indexedMap (possibleFields rules)
         |> List.sortBy numberOfPossibleFields
         |> resolveFields
         |> List.filter (fieldStartsWith "departure")
@@ -100,20 +98,23 @@ posToValueIn ticket ( col, _ ) =
     ticket |> List.drop col |> List.head |> Maybe.withDefault -1
 
 
-possibleFields : List Rule -> List Int -> List String
-possibleFields rules column =
+possibleFields : List Rule -> Int -> List Int -> ( Int, List String )
+possibleFields rules column columnValues =
     let
         allFields : List String
         allFields =
             rules |> List.map fieldname
+
+        possible =
+            columnValues
+                |> List.foldl
+                    (\v remaining ->
+                        remaining
+                            |> List.filter (\f -> List.member f (validFields rules v))
+                    )
+                    allFields
     in
-    column
-        |> List.foldl
-            (\v remaining ->
-                remaining
-                    |> List.filter (\f -> List.member f (validFields rules v))
-            )
-            allFields
+    ( column, possible )
 
 
 validFields : List Rule -> Int -> List String
