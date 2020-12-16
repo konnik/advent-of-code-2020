@@ -14,88 +14,137 @@ solution =
 part1 : Solver
 part1 input =
     parseInput input
-        |> stabilize
-        |> Dict.values
-        |> List.filter (\cell -> cell == Occupied)
-        |> List.length
+        |> stabilize (step 4 countOccupiedNeigbourSeats)
+        |> countOccupiedSeats
         |> String.fromInt
 
 
 part2 : Solver
 part2 input =
-    "not implemented"
+    parseInput input
+        |> stabilize (step 5 countVisibleOccupiedSeats)
+        |> countOccupiedSeats
+        |> String.fromInt
 
 
 
 -- solve
 
 
-stabilize : Grid -> Grid
-stabilize grid =
+type Cell
+    = Floor
+    | Empty
+    | Occupied
+
+
+type alias Pos =
+    ( Int, Int )
+
+
+type alias Dir =
+    ( Int, Int )
+
+
+type alias Grid =
+    Dict Pos Cell
+
+
+countOccupiedSeats : Grid -> Int
+countOccupiedSeats grid =
+    grid
+        |> Dict.values
+        |> List.filter (\cell -> cell == Occupied)
+        |> List.length
+
+
+stabilize : (Grid -> Grid) -> Grid -> Grid
+stabilize stepFunc grid =
     let
         nextGrid =
-            step grid
+            stepFunc grid
     in
     if grid == nextGrid then
         nextGrid
 
     else
-        stabilize nextGrid
+        stabilize stepFunc nextGrid
 
 
-occupiedNeighbours : ( Int, Int ) -> Dict ( Int, Int ) Cell -> Int
-occupiedNeighbours ( x, y ) cells =
-    [ ( -1, -1 ), ( -1, 0 ), ( -1, 1 ), ( 0, -1 ), ( 0, 1 ), ( 1, -1 ), ( 1, 0 ), ( 1, 1 ) ]
-        |> List.filterMap
-            (\( dx, dy ) ->
-                Dict.get ( x + dx, y + dy ) cells
-            )
-        |> List.filter (\c -> c == Occupied)
+countOccupiedNeigbourSeats : Pos -> Grid -> Int
+countOccupiedNeigbourSeats ( x, y ) grid =
+    directions
+        |> List.map (isNeighbourOccupied ( x, y ) grid)
+        |> List.filter identity
         |> List.length
 
 
-step : Grid -> Grid
-step grid =
-    let
-        newFGrid =
-            Dict.toList grid
-                |> List.foldl
-                    (\( ( x, y ), cell ) newCells ->
-                        let
-                            newCell =
-                                case ( cell, occupiedNeighbours ( x, y ) grid ) of
-                                    ( Empty, 0 ) ->
-                                        Occupied
+isNeighbourOccupied : Pos -> Grid -> Dir -> Bool
+isNeighbourOccupied ( x, y ) grid ( dx, dy ) =
+    case Dict.get ( x + dx, y + dy ) grid of
+        Just Occupied ->
+            True
 
-                                    ( Occupied, n ) ->
-                                        if n >= 4 then
-                                            Empty
+        _ ->
+            False
 
-                                        else
-                                            cell
 
-                                    _ ->
-                                        cell
-                        in
-                        Dict.insert ( x, y ) newCell newCells
-                    )
-                    Dict.empty
-    in
-    newFGrid
+directions : List Dir
+directions =
+    [ ( -1, -1 ), ( -1, 0 ), ( -1, 1 ), ( 0, -1 ), ( 0, 1 ), ( 1, -1 ), ( 1, 0 ), ( 1, 1 ) ]
+
+
+countVisibleOccupiedSeats : Pos -> Grid -> Int
+countVisibleOccupiedSeats ( x, y ) grid =
+    directions
+        |> List.map (canSeeOccupied ( x, y ) grid)
+        |> List.filter identity
+        |> List.length
+
+
+canSeeOccupied : Pos -> Grid -> Dir -> Bool
+canSeeOccupied ( x, y ) grid ( dx, dy ) =
+    case Dict.get ( x + dx, y + dy ) grid of
+        Just Occupied ->
+            True
+
+        Just Empty ->
+            False
+
+        Just Floor ->
+            canSeeOccupied ( x + dx, y + dy ) grid ( dx, dy )
+
+        Nothing ->
+            False
+
+
+step : Int -> (Pos -> Grid -> Int) -> Grid -> Grid
+step tolerance countOccupiedFunc grid =
+    Dict.toList grid
+        |> List.foldl
+            (\( ( x, y ), cell ) newCells ->
+                let
+                    newCell =
+                        case ( cell, countOccupiedFunc ( x, y ) grid ) of
+                            ( Empty, 0 ) ->
+                                Occupied
+
+                            ( Occupied, n ) ->
+                                if n >= tolerance then
+                                    Empty
+
+                                else
+                                    cell
+
+                            _ ->
+                                cell
+                in
+                Dict.insert ( x, y ) newCell newCells
+            )
+            Dict.empty
 
 
 
 -- parse
-
-
-type alias Grid =
-    Dict ( Int, Int ) Cell
-
-
-type Cell
-    = Floor
-    | Empty
-    | Occupied
 
 
 parseInput : String -> Grid
