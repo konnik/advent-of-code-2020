@@ -11,18 +11,25 @@ solution =
 part1 : Solver
 part1 input =
     parseInput input
-        |> List.foldl step initialState
+        |> List.foldl step1 initialState1
         |> manhattanDist
         |> String.fromInt
 
 
 part2 : Solver
 part2 input =
-    "not implemented"
+    parseInput input
+        |> List.foldl step2 initialState2
+        |> manhattanDist2
+        |> String.fromInt
 
 
 type alias State =
     { x : Int, y : Int, dir : Int }
+
+
+type alias State2 =
+    { x : Int, y : Int, dx : Int, dy : Int }
 
 
 type Action
@@ -35,9 +42,14 @@ type Action
     | Forward Int
 
 
-initialState : State
-initialState =
+initialState1 : State
+initialState1 =
     State 0 0 0
+
+
+initialState2 : State2
+initialState2 =
+    State2 0 0 10 1
 
 
 manhattanDist : State -> Int
@@ -45,8 +57,13 @@ manhattanDist { x, y } =
     abs x + abs y
 
 
-step : Action -> State -> State
-step action state =
+manhattanDist2 : State2 -> Int
+manhattanDist2 { x, y } =
+    abs x + abs y
+
+
+step1 : Action -> State -> State
+step1 action state =
     case action of
         North n ->
             { state | y = state.y + n }
@@ -82,6 +99,50 @@ step action state =
 
                 _ ->
                     state
+
+
+step2 : Action -> State2 -> State2
+step2 action state =
+    case action of
+        North n ->
+            { state | dy = state.dy + n }
+
+        South n ->
+            { state | dy = state.dy - n }
+
+        East n ->
+            { state | dx = state.dx + n }
+
+        West n ->
+            { state | dx = state.dx - n }
+
+        {- Action L means to rotate the waypoint around the ship left (counter-clockwise) the given number of degrees. -}
+        TurnLeft d ->
+            case d of
+                90 ->
+                    { state | dy = state.dx, dx = -state.dy }
+
+                180 ->
+                    { state | dy = -state.dy, dx = -state.dx }
+
+                _ ->
+                    { state | dy = -state.dx, dx = state.dy }
+
+        {- Action R means to rotate the waypoint around the ship right (clockwise) the given number of degrees. -}
+        TurnRight d ->
+            case d of
+                90 ->
+                    { state | dy = -state.dx, dx = state.dy }
+
+                180 ->
+                    { state | dy = -state.dy, dx = -state.dx }
+
+                _ ->
+                    { state | dy = state.dx, dx = -state.dy }
+
+        {- Action F means to move forward to the waypoint a number of times equal to the given value. -}
+        Forward n ->
+            { state | x = state.x + state.dx * n, y = state.y + state.dy * n }
 
 
 parseInput : String -> List Action
