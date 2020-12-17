@@ -1,4 +1,4 @@
-module Day17 exposing (countActiveNeighbours, offsets, parseInput, solution, step, test)
+module Day17 exposing (solution)
 
 import Dict exposing (Dict)
 import Set exposing (Set)
@@ -13,39 +13,39 @@ solution =
 part1 : Solver
 part1 input =
     parseInput input
-        |> step
-        |> step
-        |> step
-        |> step
-        |> step
-        |> step
+        |> step offsets3
+        |> step offsets3
+        |> step offsets3
+        |> step offsets3
+        |> step offsets3
+        |> step offsets3
         |> Set.size
         |> String.fromInt
 
 
 part2 : Solver
 part2 input =
-    "not implemented"
+    parseInput input
+        |> addDimension
+        |> step offsets4
+        |> step offsets4
+        |> step offsets4
+        |> step offsets4
+        |> step offsets4
+        |> step offsets4
+        |> Set.size
+        |> String.fromInt
 
 
-test : String
-test =
-    """.#.
-..#
-###"""
-
-
-step : Set ( Int, Int, Int ) -> Set ( Int, Int, Int )
-step activeCubes =
+step : List Cube -> Set Cube -> Set Cube
+step offsets activeCubes =
     let
         neighbourCount =
-            countActiveNeighbours activeCubes
+            countActiveNeighbours offsets activeCubes
 
-        twoOrThree : Set ( Int, Int, Int )
         twoOrThree =
             neighbourCount |> Dict.filter (\k v -> v == 2 || v == 3) |> Dict.keys |> Set.fromList
 
-        exactlyThree : Set ( Int, Int, Int )
         exactlyThree =
             neighbourCount |> Dict.filter (\k v -> v == 3) |> Dict.keys |> Set.fromList
     in
@@ -54,16 +54,16 @@ step activeCubes =
         |> Set.union exactlyThree
 
 
-countActiveNeighbours : Set ( Int, Int, Int ) -> Dict ( Int, Int, Int ) Int
-countActiveNeighbours activeCubes =
+countActiveNeighbours : List Cube -> Set Cube -> Dict Cube Int
+countActiveNeighbours offsets activeCubes =
     activeCubes
         |> Set.foldl
-            (\( x, y, z ) acc ->
+            (\cube acc ->
                 offsets
                     |> List.foldl
-                        (\( dx, dy, dz ) acc2 ->
+                        (\offset acc2 ->
                             acc2
-                                |> Dict.update ( x + dx, y + dy, z + dz )
+                                |> Dict.update (cube |> plus offset)
                                     (\maybeValue ->
                                         case maybeValue of
                                             Nothing ->
@@ -78,34 +78,47 @@ countActiveNeighbours activeCubes =
             Dict.empty
 
 
-offsets : List ( Int, Int, Int )
-offsets =
-    [ ( 1, 0, 0 )
-    , ( -1, 0, 0 )
-    , ( 0, 1, 0 )
-    , ( 1, 1, 0 )
-    , ( -1, 1, 0 )
-    , ( 0, -1, 0 )
-    , ( 1, -1, 0 )
-    , ( -1, -1, 0 )
-    , ( 0, 0, 1 )
-    , ( 1, 0, 1 )
-    , ( -1, 0, 1 )
-    , ( 0, 1, 1 )
-    , ( 1, 1, 1 )
-    , ( -1, 1, 1 )
-    , ( 0, -1, 1 )
-    , ( 1, -1, 1 )
-    , ( -1, -1, 1 )
-    , ( 0, 0, -1 )
-    , ( 1, 0, -1 )
-    , ( -1, 0, -1 )
-    , ( 0, 1, -1 )
-    , ( 1, 1, -1 )
-    , ( -1, 1, -1 )
-    , ( 0, -1, -1 )
-    , ( 1, -1, -1 )
-    , ( -1, -1, -1 )
+plus : Cube -> Cube -> Cube
+plus c1 c2 =
+    List.map2 (\a b -> a + b) c1 c2
+
+
+offsets4 : List Cube
+offsets4 =
+    [ 0, 0, 0 ]
+        :: offsets3
+        |> List.concatMap (\offset3 -> [ 0 :: offset3, 1 :: offset3, -1 :: offset3 ])
+        |> List.filter ((/=) [ 0, 0, 0, 0 ])
+
+
+offsets3 : List Cube
+offsets3 =
+    [ [ 1, 0, 0 ]
+    , [ -1, 0, 0 ]
+    , [ 0, 1, 0 ]
+    , [ 1, 1, 0 ]
+    , [ -1, 1, 0 ]
+    , [ 0, -1, 0 ]
+    , [ 1, -1, 0 ]
+    , [ -1, -1, 0 ]
+    , [ 0, 0, 1 ]
+    , [ 1, 0, 1 ]
+    , [ -1, 0, 1 ]
+    , [ 0, 1, 1 ]
+    , [ 1, 1, 1 ]
+    , [ -1, 1, 1 ]
+    , [ 0, -1, 1 ]
+    , [ 1, -1, 1 ]
+    , [ -1, -1, 1 ]
+    , [ 0, 0, -1 ]
+    , [ 1, 0, -1 ]
+    , [ -1, 0, -1 ]
+    , [ 0, 1, -1 ]
+    , [ 1, 1, -1 ]
+    , [ -1, 1, -1 ]
+    , [ 0, -1, -1 ]
+    , [ 1, -1, -1 ]
+    , [ -1, -1, -1 ]
     ]
 
 
@@ -113,7 +126,16 @@ offsets =
 -- input parsing
 
 
-parseInput : String -> Set ( Int, Int, Int )
+type alias Cube =
+    List Int
+
+
+addDimension : Set Cube -> Set Cube
+addDimension cubes =
+    cubes |> Set.map ((::) 0)
+
+
+parseInput : String -> Set Cube
 parseInput input =
     String.lines input
         |> List.indexedMap
@@ -123,7 +145,7 @@ parseInput input =
                         (\x ch ->
                             case ch of
                                 '#' ->
-                                    Just ( x, y, 0 )
+                                    Just [ x, y, 0 ]
 
                                 _ ->
                                     Nothing
