@@ -13,12 +13,12 @@ solution =
 part1 : Solver
 part1 input =
     parseInput input
-        |> step offsets3
-        |> step offsets3
-        |> step offsets3
-        |> step offsets3
-        |> step offsets3
-        |> step offsets3
+        |> cycle offsets3
+        |> cycle offsets3
+        |> cycle offsets3
+        |> cycle offsets3
+        |> cycle offsets3
+        |> cycle offsets3
         |> Set.size
         |> String.fromInt
 
@@ -27,18 +27,18 @@ part2 : Solver
 part2 input =
     parseInput input
         |> addDimension
-        |> step offsets4
-        |> step offsets4
-        |> step offsets4
-        |> step offsets4
-        |> step offsets4
-        |> step offsets4
+        |> cycle offsets4
+        |> cycle offsets4
+        |> cycle offsets4
+        |> cycle offsets4
+        |> cycle offsets4
+        |> cycle offsets4
         |> Set.size
         |> String.fromInt
 
 
-step : List Cube -> Set Cube -> Set Cube
-step offsets activeCubes =
+cycle : List Offset -> Set Cube -> Set Cube
+cycle offsets activeCubes =
     let
         neighbourCount =
             countActiveNeighbours offsets activeCubes
@@ -54,7 +54,7 @@ step offsets activeCubes =
         |> Set.union exactlyThree
 
 
-countActiveNeighbours : List Cube -> Set Cube -> Dict Cube Int
+countActiveNeighbours : List Offset -> Set Cube -> Dict Cube Int
 countActiveNeighbours offsets activeCubes =
     activeCubes
         |> Set.foldl
@@ -83,7 +83,7 @@ plus c1 c2 =
     List.map2 (\a b -> a + b) c1 c2
 
 
-offsets4 : List Cube
+offsets4 : List Offset
 offsets4 =
     [ 0, 0, 0 ]
         :: offsets3
@@ -91,7 +91,7 @@ offsets4 =
         |> List.filter ((/=) [ 0, 0, 0, 0 ])
 
 
-offsets3 : List Cube
+offsets3 : List Offset
 offsets3 =
     [ [ 1, 0, 0 ]
     , [ -1, 0, 0 ]
@@ -127,6 +127,10 @@ offsets3 =
 
 
 type alias Cube =
+    List Int
+
+
+type alias Offset =
     List Int
 
 
