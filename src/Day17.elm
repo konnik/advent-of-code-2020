@@ -12,7 +12,7 @@ solution =
 
 part1 : Solver
 part1 input =
-    parseInput input
+    parseInputWithDimension 3 input
         |> cycle offsets3
         |> cycle offsets3
         |> cycle offsets3
@@ -25,8 +25,7 @@ part1 input =
 
 part2 : Solver
 part2 input =
-    parseInput input
-        |> addDimension
+    parseInputWithDimension 4 input
         |> cycle offsets4
         |> cycle offsets4
         |> cycle offsets4
@@ -139,8 +138,8 @@ addDimension cubes =
     cubes |> Set.map ((::) 0)
 
 
-parseInput : String -> Set Cube
-parseInput input =
+parseInputWithDimension : Int -> String -> Set Cube
+parseInputWithDimension dimension input =
     String.lines input
         |> List.indexedMap
             (\y line ->
@@ -149,7 +148,7 @@ parseInput input =
                         (\x ch ->
                             case ch of
                                 '#' ->
-                                    Just [ x, y, 0 ]
+                                    Just <| [ x, y ] ++ List.repeat (dimension - 2) 0
 
                                 _ ->
                                     Nothing
