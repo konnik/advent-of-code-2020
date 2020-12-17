@@ -56,26 +56,18 @@ cycle offsets activeCubes =
 
 countActiveNeighbours : List Offset -> Set Cube -> Dict Cube Int
 countActiveNeighbours offsets activeCubes =
-    activeCubes
-        |> Set.foldl
-            (\cube acc ->
-                offsets
-                    |> List.foldl
-                        (\offset acc2 ->
-                            acc2
-                                |> Dict.update (cube |> plus offset)
-                                    (\maybeValue ->
-                                        case maybeValue of
-                                            Nothing ->
-                                                Just 1
+    let
+        addOne : Maybe Int -> Maybe Int
+        addOne =
+            Maybe.withDefault 0 >> (+) 1 >> Just
 
-                                            Just value ->
-                                                Just (value + 1)
-                                    )
-                        )
-                        acc
-            )
-            Dict.empty
+        updateNeighbourCounts : Cube -> Dict Cube Int -> Dict Cube Int
+        updateNeighbourCounts cube neighbourCounts =
+            offsets
+                |> List.map (plus cube)
+                |> List.foldl (\neighbour -> Dict.update neighbour addOne) neighbourCounts
+    in
+    activeCubes |> Set.foldl updateNeighbourCounts Dict.empty
 
 
 plus : Cube -> Cube -> Cube
