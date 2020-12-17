@@ -133,11 +133,6 @@ type alias Offset =
     List Int
 
 
-addDimension : Set Cube -> Set Cube
-addDimension cubes =
-    cubes |> Set.map ((::) 0)
-
-
 parseInputWithDimension : Int -> String -> Set Cube
 parseInputWithDimension dimension input =
     String.lines input
