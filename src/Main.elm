@@ -5,6 +5,7 @@ import Browser.Navigation as Nav
 import Day1
 import Day10
 import Day11
+import Day12
 import Day14
 import Day15
 import Day16
@@ -44,6 +45,7 @@ solutions =
         , ( 9, Day9.solution )
         , ( 10, Day10.solution )
         , ( 11, Day11.solution )
+        , ( 12, Day12.solution )
         , ( 14, Day14.solution )
         , ( 15, Day15.solution )
         , ( 16, Day16.solution )
