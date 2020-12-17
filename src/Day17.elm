@@ -1,6 +1,7 @@
 module Day17 exposing (solution)
 
 import Dict exposing (Dict)
+import List.Extra
 import Set exposing (Set)
 import Types exposing (Solution, Solver)
 
@@ -84,41 +85,16 @@ plus c1 c2 =
 
 offsets4 : List Offset
 offsets4 =
-    [ 0, 0, 0 ]
-        :: offsets3
-        |> List.concatMap (\offset3 -> [ 0 :: offset3, 1 :: offset3, -1 :: offset3 ])
-        |> List.filter ((/=) [ 0, 0, 0, 0 ])
+    List.repeat 4 [ -1, 0, 1 ]
+        |> List.Extra.cartesianProduct
+        |> List.filter (List.any ((/=) 0))
 
 
 offsets3 : List Offset
 offsets3 =
-    [ [ 1, 0, 0 ]
-    , [ -1, 0, 0 ]
-    , [ 0, 1, 0 ]
-    , [ 1, 1, 0 ]
-    , [ -1, 1, 0 ]
-    , [ 0, -1, 0 ]
-    , [ 1, -1, 0 ]
-    , [ -1, -1, 0 ]
-    , [ 0, 0, 1 ]
-    , [ 1, 0, 1 ]
-    , [ -1, 0, 1 ]
-    , [ 0, 1, 1 ]
-    , [ 1, 1, 1 ]
-    , [ -1, 1, 1 ]
-    , [ 0, -1, 1 ]
-    , [ 1, -1, 1 ]
-    , [ -1, -1, 1 ]
-    , [ 0, 0, -1 ]
-    , [ 1, 0, -1 ]
-    , [ -1, 0, -1 ]
-    , [ 0, 1, -1 ]
-    , [ 1, 1, -1 ]
-    , [ -1, 1, -1 ]
-    , [ 0, -1, -1 ]
-    , [ 1, -1, -1 ]
-    , [ -1, -1, -1 ]
-    ]
+    List.repeat 3 [ -1, 0, 1 ]
+        |> List.Extra.cartesianProduct
+        |> List.filter (List.any ((/=) 0))
 
 
 
