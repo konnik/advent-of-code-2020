@@ -8,6 +8,7 @@ import Day11
 import Day14
 import Day15
 import Day16
+import Day17
 import Day2
 import Day3
 import Day4
@@ -46,6 +47,7 @@ solutions =
         , ( 14, Day14.solution )
         , ( 15, Day15.solution )
         , ( 16, Day16.solution )
+        , ( 17, Day17.solution )
         ]
 
 
