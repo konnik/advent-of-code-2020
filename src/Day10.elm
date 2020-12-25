@@ -1,5 +1,6 @@
 module Day10 exposing (solution)
 
+import Dict exposing (Dict)
 import Element.Font exposing (tabularNumbers)
 import Html exposing (input)
 import List
@@ -24,13 +25,49 @@ part1 input =
 
 part2 : Solver
 part2 input =
-    parseInput input
-        |> (::) 0
-        |> List.sort
-        |> group
-        |> List.map validCombinations
-        |> List.product
-        |> String.fromInt
+    let
+        adapters =
+            parseInput input
+
+        max =
+            List.maximum adapters |> Maybe.withDefault 0
+    in
+    [ [ 0 ], adapters, [ max + 3 ] ]
+        |> (List.concat >> List.sort >> List.reverse)
+        |> solve2 Dict.empty
+        |> (Tuple.second >> String.fromInt)
+
+
+solve2 : Dict (List Int) Int -> List Int -> ( Dict (List Int) Int, Int )
+solve2 memo adapters =
+    case Dict.get adapters memo of
+        Just x ->
+            ( memo, x )
+
+        Nothing ->
+            case adapters of
+                [] ->
+                    ( Dict.insert [] 0 memo, 0 )
+
+                [ _ ] ->
+                    ( Dict.insert [] 1 memo, 1 )
+
+                x :: rest ->
+                    let
+                        ( newMemo, value ) =
+                            rest
+                                |> LE.takeWhile (\n -> x - n <= 3)
+                                |> List.foldl
+                                    (\n ( accMemo, accValue ) ->
+                                        let
+                                            ( mm, vv ) =
+                                                solve2 accMemo <| LE.dropWhile ((/=) n) rest
+                                        in
+                                        ( mm, accValue + vv )
+                                    )
+                                    ( memo, 0 )
+                    in
+                    ( Dict.insert adapters value newMemo, value )
 
 
 countDeltas : List Int -> ( Int, Int, Int )
@@ -53,33 +90,6 @@ countDeltas numbers =
             )
             ( 0, ( 0, 0, 0 ) )
         |> Tuple.second
-
-
-group : List Int -> List ( Int, List Int )
-group numbers =
-    numbers
-        |> LE.groupWhile (\a b -> b - a < 3)
-
-
-validCombinations : ( Int, List Int ) -> Int
-validCombinations numbers =
-    case numbers of
-        ( _, [] ) ->
-            1
-
-        ( _, [ _ ] ) ->
-            1
-
-        ( _, a :: [ _ ] ) ->
-            2
-
-        ( _, a :: b :: [ _ ] ) ->
-            4
-
-        ( _, a :: b :: c :: rest ) ->
-            validCombinations ( a, b :: c :: rest )
-                + validCombinations ( b, c :: rest )
-                + validCombinations ( c, rest )
 
 
 
